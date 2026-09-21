@@ -1,5 +1,7 @@
 venv
 .venv
+__pycache__/
+*.py[cod]
 .env.*
 .env.local
 .env.dev
@@ -7,3 +9,5 @@ venv
 
 
 *.yaml
+!config/
+!config/agents.yaml

@@ -74,6 +74,16 @@ The core rule is simple:
 
 The workflow should know about `ArchitectAgent`, `DeveloperAgent`, and `ReviewerAgent`, not directly about Claude, Codex, Gemini, or any other provider.
 
+### Agent Configuration
+
+Agent/provider selection, project documentation, and role skills live in
+`config/agents.yaml`. Every role receives an `AgentContext` containing the
+already-read documentation, shared skills, and its role-specific skills.
+
+The application workflow depends on the role ports and the context-provider
+port. Provider names such as `codex` are interpreted only by adapters and the
+future composition root.
+
 ## Core Workflow
 
 ```text
