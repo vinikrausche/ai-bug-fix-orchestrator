@@ -1,0 +1,8 @@
+venv
+.env.*
+.env.local
+.env.dev
+.env.prod
+
+
+*.yaml
