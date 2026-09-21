@@ -11,7 +11,8 @@ Create a safe and minimal plan for fixing the reported bug.
 ## Instructions
 
 1. Analyze the bug description and available evidence.
-2. Read the relevant project documentation and code context.
+2. Inspect the repository and discover its relevant documentation, source files,
+   tests, and structure.
 3. Identify the likely root cause.
 4. Identify the files or components that should be inspected or changed.
 5. Define the smallest reasonable correction.

@@ -1,0 +1,30 @@
+version: 1
+
+agents:
+  architect:
+    adapter: codex
+    model: default
+    skills:
+      shared:
+        - skills/shared/project-context/SKILL.md
+      role:
+        - skills/architect/bugfix-planning/SKILL.md
+
+  developer:
+    adapter: codex
+    model: default
+    skills:
+      shared:
+        - skills/shared/project-context/SKILL.md
+      role:
+        - skills/developer/safe-bugfix/SKILL.md
+
+  reviewer:
+    adapter: codex
+    model: default
+    skills:
+      shared:
+        - skills/shared/project-context/SKILL.md
+      role:
+        - skills/reviewer/diff-review/SKILL.md
+        - skills/reviewer/test-validation/SKILL.md
