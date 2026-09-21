@@ -18,8 +18,8 @@ AI providers are replaceable. Claude, Codex, Gemini, or another compatible provi
 
 The first version should:
 
-1. Receive a bug description from a local file or CLI input.
-2. Read the project documentation and relevant repository context.
+1. Receive a bug title, description, and local project path from CLI input.
+2. Discover the project documentation and relevant repository context.
 3. Run the workflow `Architect -> Developer -> Reviewer`.
 4. Allow each role to use a configurable AI provider.
 5. Operate on a local Git repository.
@@ -76,9 +76,10 @@ The workflow should know about `ArchitectAgent`, `DeveloperAgent`, and `Reviewer
 
 ### Agent Configuration
 
-Agent/provider selection, project documentation, and role skills live in
-`config/agents.yaml`. Every role receives an `AgentContext` containing the
-already-read documentation, shared skills, and its role-specific skills.
+Agent/provider selection and role skills live in `config/agents.yaml`. The
+target repository comes from the runtime request. Every role receives an
+`AgentContext` containing that repository path and its configured skills; the
+Architect discovers relevant project documentation and source context there.
 
 The application workflow depends on the role ports and the context-provider
 port. Provider names such as `codex` are interpreted only by adapters and the
@@ -87,7 +88,7 @@ future composition root.
 ## Core Workflow
 
 ```text
-Bug + Project Documentation
+Bug + Project Path
             |
             v
       ArchitectAgent
@@ -117,8 +118,7 @@ The Architect is responsible for understanding before changing.
 It must:
 
 - read the bug description;
-- read the configured project documentation;
-- inspect relevant code when necessary;
+- discover relevant project documentation, source files, tests, and structure;
 - identify the likely root cause;
 - identify affected files or components;
 - create a minimal implementation plan;
@@ -174,7 +174,10 @@ Expected output: `ReviewResult`.
 A user should eventually be able to run a command similar to:
 
 ```bash
-ai-bug-fix fix bug.md
+python3 -m cli.main \
+  --title "Application crashes on startup" \
+  --description "Running the project produces an error. Investigate and fix it." \
+  --project /absolute/path/to/project
 ```
 
 and observe a workflow similar to:

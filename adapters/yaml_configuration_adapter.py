@@ -6,7 +6,7 @@ from typing import Any
 
 import yaml
 
-from ports.configuration import AgentContextProviderPort, AgentRole
+from ports.agent_context_provider import AgentContextProviderPort, AgentRole
 from ports.context import AgentContext, ContextDocument
 
 
@@ -19,32 +19,29 @@ class AgentSettings:
 
 
 class YamlAgentConfigurationAdapter(AgentContextProviderPort):
-    """Reads role selection, documentation, and skills from a YAML file."""
+    """Reads provider selection and role skills from a YAML file."""
 
     _ROLES: tuple[AgentRole, ...] = ("architect", "developer", "reviewer")
 
     def __init__(self, configuration_file: Path) -> None:
         self._configuration_file = configuration_file.resolve()
+        self._application_root = self._configuration_file.parent.parent
         self._configuration = self._read_configuration()
         self._validate_configuration()
-        repository = self._configuration["project"]["repository"]
-        self._project_root = (
-            self._configuration_file.parent / repository
-        ).resolve()
-        if not self._project_root.is_dir():
-            raise ValueError(f"Repository directory not found: {self._project_root}")
 
     def agent_settings(self, role: AgentRole) -> AgentSettings:
         agent = self._agent(role)
         return AgentSettings(adapter=agent["adapter"], model=agent["model"])
 
-    def load_context(self, role: AgentRole) -> AgentContext:
+    def load_context(self, role: AgentRole, project_path: Path) -> AgentContext:
         agent = self._agent(role)
-        project = self._configuration["project"]
+        repository = project_path.expanduser().resolve()
+        if not repository.is_dir():
+            raise ValueError(f"Repository directory not found: {repository}")
 
         return AgentContext(
-            repository=self._project_root,
-            documentation=self._read_files(project["documentation"]),
+            repository=repository,
+            documentation=(),
             shared_skills=self._read_files(agent["skills"]["shared"]),
             role_skills=self._read_files(agent["skills"]["role"]),
         )
@@ -65,12 +62,6 @@ class YamlAgentConfigurationAdapter(AgentContextProviderPort):
 
     def _validate_configuration(self) -> None:
         try:
-            project = self._configuration["project"]
-            if not project["repository"]:
-                raise ValueError("Project repository cannot be empty")
-            if not project["documentation"]:
-                raise ValueError("Project documentation cannot be empty")
-
             for role in self._ROLES:
                 agent = self._configuration["agents"][role]
                 if not agent["adapter"] or not agent["model"]:
@@ -101,7 +92,9 @@ class YamlAgentConfigurationAdapter(AgentContextProviderPort):
         return tuple(documents)
 
     def _resolve_path(self, configured_path: str) -> Path:
-        path = (self._project_root / configured_path).resolve()
-        if not path.is_relative_to(self._project_root):
-            raise ValueError(f"Configured path leaves project root: {configured_path}")
+        path = (self._application_root / configured_path).resolve()
+        if not path.is_relative_to(self._application_root):
+            raise ValueError(
+                f"Configured skill path leaves application root: {configured_path}"
+            )
         return path

@@ -6,10 +6,13 @@ from pathlib import Path
 
 @dataclass(frozen=True)
 class BugReport:
+    title: str
     description: str
-    source: Path | None = None
+    project_path: Path
 
     def __post_init__(self) -> None:
+        if not self.title.strip():
+            raise ValueError("Bug title cannot be empty")
         if not self.description.strip():
             raise ValueError("Bug description cannot be empty")
 

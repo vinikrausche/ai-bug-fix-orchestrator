@@ -1,12 +1,5 @@
 version: 1
 
-project:
-  # Relative to this configuration file. Other paths are relative to the repo.
-  repository: ..
-  documentation:
-    - docs/SPECIFICATION.md
-    - docs/AGENT_SKILLS.md
-
 agents:
   architect:
     adapter: codex

@@ -6,7 +6,7 @@ from langchain_core.runnables import RunnableLambda
 
 from domain.models import BugReport, FixPlan, ImplementationResult, ReviewResult
 from ports.architect import ArchitectPort
-from ports.configuration import AgentContextProviderPort
+from ports.agent_context_provider import AgentContextProviderPort
 from ports.developer import DeveloperPort
 from ports.reviewer import ReviewerPort
 from ports.workflow import BugFixWorkflowPort
@@ -42,19 +42,25 @@ class LangChainBugFixWorkflow(BugFixWorkflowPort):
         )
 
     def _architect_step(self, state: BugFixWorkflowState) -> BugFixWorkflowState:
-        context = self._context_provider.load_context("architect")
+        context = self._context_provider.load_context(
+            "architect", state["bug"].project_path
+        )
         plan = self._architect.create_fix_plan(state["bug"], context)
         return {**state, "plan": plan}
 
     def _developer_step(self, state: BugFixWorkflowState) -> BugFixWorkflowState:
-        context = self._context_provider.load_context("developer")
+        context = self._context_provider.load_context(
+            "developer", state["bug"].project_path
+        )
         implementation = self._developer.implement_fix(
             state["bug"], state["plan"], context
         )
         return {**state, "implementation": implementation}
 
     def _reviewer_step(self, state: BugFixWorkflowState) -> BugFixWorkflowState:
-        context = self._context_provider.load_context("reviewer")
+        context = self._context_provider.load_context(
+            "reviewer", state["bug"].project_path
+        )
         review = self._reviewer.review_fix(
             state["bug"], state["plan"], state["implementation"], context
         )

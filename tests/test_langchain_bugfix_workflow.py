@@ -4,7 +4,7 @@ from pathlib import Path
 from adapters.orchestration.langchain_bugfix_workflow import LangChainBugFixWorkflow
 from domain.models import BugReport, FixPlan, ImplementationResult, ReviewResult
 from ports.architect import ArchitectPort
-from ports.configuration import AgentContextProviderPort, AgentRole
+from ports.agent_context_provider import AgentContextProviderPort, AgentRole
 from ports.context import AgentContext, ContextDocument
 from ports.developer import DeveloperPort
 from ports.reviewer import ReviewerPort
@@ -12,7 +12,7 @@ from ports.reviewer import ReviewerPort
 
 class FakeContextProvider(AgentContextProviderPort):
     def __init__(self) -> None:
-        self.loaded_roles: list[AgentRole] = []
+        self.loaded_contexts: list[tuple[AgentRole, Path]] = []
         self.contexts = {
             role: AgentContext(
                 repository=Path("/workspace"),
@@ -23,8 +23,8 @@ class FakeContextProvider(AgentContextProviderPort):
             for role in ("architect", "developer", "reviewer")
         }
 
-    def load_context(self, role: AgentRole) -> AgentContext:
-        self.loaded_roles.append(role)
+    def load_context(self, role: AgentRole, project_path: Path) -> AgentContext:
+        self.loaded_contexts.append((role, project_path))
         return self.contexts[role]
 
 
@@ -95,13 +95,19 @@ class LangChainBugFixWorkflowTest(unittest.TestCase):
             architect, developer, reviewer, context_provider
         )
 
-        result = workflow.run(BugReport("broken behavior"))
+        project_path = Path("/workspace")
+        result = workflow.run(BugReport("Startup crash", "broken behavior", project_path))
 
         self.assertEqual(calls, ["architect", "developer", "reviewer"])
         self.assertIs(developer.received_plan, plan)
         self.assertIs(reviewer.received_implementation, implementation)
         self.assertEqual(
-            context_provider.loaded_roles, ["architect", "developer", "reviewer"]
+            context_provider.loaded_contexts,
+            [
+                ("architect", project_path),
+                ("developer", project_path),
+                ("reviewer", project_path),
+            ],
         )
         self.assertIs(
             architect.received_context, context_provider.contexts["architect"]

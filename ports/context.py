@@ -20,9 +20,8 @@ class ContextDocument:
 class AgentContext:
     """Mandatory project knowledge supplied on every role invocation.
 
-    Requiring loaded documents instead of paths makes it impossible for an
-    orchestrator to call a role without first reading the configured project
-    documentation and skill instructions.
+    Project documentation is discovered from ``repository`` by the agents.
+    Skill documents are loaded from the orchestrator configuration.
     """
 
     repository: Path
@@ -31,8 +30,6 @@ class AgentContext:
     role_skills: tuple[ContextDocument, ...]
 
     def __post_init__(self) -> None:
-        if not self.documentation:
-            raise ValueError("At least one project document is required")
         if not self.shared_skills:
             raise ValueError("At least one shared skill is required")
         if not self.role_skills:
@@ -41,10 +38,11 @@ class AgentContext:
     def render_instructions(self) -> str:
         """Render all mandatory context for a provider request."""
         sections = (
-            ("PROJECT DOCUMENTATION", self.documentation),
             ("SHARED SKILLS", self.shared_skills),
             ("ROLE SKILLS", self.role_skills),
         )
+        if self.documentation:
+            sections = (("PROJECT DOCUMENTATION", self.documentation), *sections)
         rendered_sections = []
         for title, documents in sections:
             rendered_documents = "\n\n".join(
