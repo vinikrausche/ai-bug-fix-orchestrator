@@ -14,7 +14,7 @@ Used by Architect, Developer, and Reviewer.
 
 Responsibilities:
 
-- read configured project documentation;
+- discover and read relevant project documentation;
 - understand the relevant repository structure;
 - identify files and modules related to the bug;
 - respect documented architecture and project rules;

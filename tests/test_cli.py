@@ -3,6 +3,7 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 
 from cli.main import main
 from domain.models import BugReport, ReviewResult
@@ -26,7 +27,6 @@ class CliTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as directory, redirect_stdout(output):
             result = main(
-                workflow,
                 [
                     "--title",
                     "Application crashes on startup",
@@ -35,6 +35,7 @@ class CliTest(unittest.TestCase):
                     "--project",
                     directory,
                 ],
+                workflow=workflow,
             )
 
         self.assertIs(result, workflow.result)
@@ -46,6 +47,26 @@ class CliTest(unittest.TestCase):
         )
         self.assertEqual(workflow.bug.project_path, Path(directory).resolve())
         self.assertIn("Fix approved", output.getvalue())
+
+    def test_builds_the_real_workflow_when_one_is_not_injected(self) -> None:
+        workflow = RecordingWorkflow()
+
+        with tempfile.TemporaryDirectory() as directory, patch(
+            "cli.main.build_bug_fix_workflow", return_value=workflow
+        ) as build_workflow, redirect_stdout(StringIO()):
+            main(
+                [
+                    "--title",
+                    "Application crashes",
+                    "--description",
+                    "Investigate the failure",
+                    "--project",
+                    directory,
+                ]
+            )
+
+        build_workflow.assert_called_once_with()
+        self.assertIsNotNone(workflow.bug)
 
 
 if __name__ == "__main__":

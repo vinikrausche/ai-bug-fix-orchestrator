@@ -42,28 +42,34 @@ class LangChainBugFixWorkflow(BugFixWorkflowPort):
         )
 
     def _architect_step(self, state: BugFixWorkflowState) -> BugFixWorkflowState:
+        print("[architect] analyzing bug and project context")
         context = self._context_provider.load_context(
             "architect", state["bug"].project_path
         )
         plan = self._architect.create_fix_plan(state["bug"], context)
+        print("[architect] fix plan created")
         return {**state, "plan": plan}
 
     def _developer_step(self, state: BugFixWorkflowState) -> BugFixWorkflowState:
+        print("[developer] applying fix")
         context = self._context_provider.load_context(
             "developer", state["bug"].project_path
         )
         implementation = self._developer.implement_fix(
             state["bug"], state["plan"], context
         )
+        print("[developer] implementation completed")
         return {**state, "implementation": implementation}
 
     def _reviewer_step(self, state: BugFixWorkflowState) -> BugFixWorkflowState:
+        print("[reviewer] reviewing diff and running relevant tests")
         context = self._context_provider.load_context(
             "reviewer", state["bug"].project_path
         )
         review = self._reviewer.review_fix(
             state["bug"], state["plan"], state["implementation"], context
         )
+        print("[reviewer] approved" if review.approved else "[reviewer] changes requested")
         return {**state, "review": review}
 
     def run(self, bug: BugReport) -> ReviewResult:

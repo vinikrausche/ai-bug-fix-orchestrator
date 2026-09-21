@@ -83,7 +83,7 @@ Architect discovers relevant project documentation and source context there.
 
 The application workflow depends on the role ports and the context-provider
 port. Provider names such as `codex` are interpreted only by adapters and the
-future composition root.
+composition root.
 
 ## Core Workflow
 
@@ -171,7 +171,7 @@ Expected output: `ReviewResult`.
 
 ## V1 Success Criteria
 
-A user should eventually be able to run a command similar to:
+A user can run:
 
 ```bash
 python3 -m cli.main \

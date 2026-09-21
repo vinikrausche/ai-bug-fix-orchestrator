@@ -12,7 +12,7 @@ from ports.context import AgentContext, ContextDocument
 
 @dataclass(frozen=True)
 class AgentSettings:
-    """Provider selection used by the application composition root."""
+    """Provider selection used by the composition root."""
 
     adapter: str
     model: str
