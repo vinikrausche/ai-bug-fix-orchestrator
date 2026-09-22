@@ -6,6 +6,8 @@ import tempfile
 from pathlib import Path
 from typing import Any, Literal
 
+from adapters.sensitive_data_scanner import assert_repository_has_no_sensitive_data
+
 CodexSandbox = Literal["read-only", "workspace-write"]
 
 
@@ -27,6 +29,7 @@ class CodexCliClient:
         repository = project_path.resolve()
         if not repository.is_dir():
             raise ValueError(f"Repository directory not found: {repository}")
+        assert_repository_has_no_sensitive_data(repository)
 
         with tempfile.TemporaryDirectory(prefix="bug-fix-codex-") as directory:
             temporary_directory = Path(directory)
@@ -36,6 +39,10 @@ class CodexCliClient:
 
             command = [
                 self._executable,
+                "--config",
+                'shell_environment_policy.inherit="core"',
+                "--config",
+                "shell_environment_policy.ignore_default_excludes=false",
                 "exec",
                 "--cd",
                 str(repository),

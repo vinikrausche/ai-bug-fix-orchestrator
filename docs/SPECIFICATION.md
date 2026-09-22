@@ -168,6 +168,12 @@ Expected output: `ReviewResult`.
 - Destructive commands must not run without explicit user permission.
 - Every modification must remain reviewable through Git.
 - A failed relevant test must never be hidden or reported as a successful review.
+- Before starting Codex, reject repositories containing common credential files,
+  private keys, or high-confidence token signatures.
+- Commands started by Codex inherit only a reduced environment, with variables
+  whose names contain `KEY`, `SECRET`, or `TOKEN` excluded.
+- `--ephemeral` prevents local session rollout persistence; it is not treated as
+  a substitute for the sensitive-data preflight check.
 
 ## V1 Success Criteria
 
